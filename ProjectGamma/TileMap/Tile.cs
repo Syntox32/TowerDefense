@@ -69,22 +69,28 @@ namespace ProjectGamma.Tiling
             IsRoad = false;
             Parent = null;
 
-            H = 0;
+            H = -1; // if the heuristic is negative it means it can't be used in pathfinding
             G = 1;
         }
 
-        public void SetState(Texture tex, bool road = false)
+        // ugly multipurpose method for modifying tiles
+        public void SetState(bool road = false, Texture tex = null, bool keepTransform = false)
         {
-            IsRoad = road ? true : false;
+            IsRoad = road;
 
-            _sprite = new Sprite(tex);
-            _sprite.Position = Position;
-            _sprite.Scale = _scale.ToVector();
+            // if the texture is null we only set the isRoad state
+            if (tex != null)
+            {
+                _sprite = new Sprite(tex);
+                _sprite.Position = Position;
+                _sprite.Scale = _scale.ToVector();
 
-            _transform = Transform.Identity;
+                if (!keepTransform)
+                    _transform = Transform.Identity;
+            }
         }
 
-        public void Rotate(float angle = 90f)
+        public void CreateRotation(float angle = 90f)
         {
             var center = Center;
             _transform.Rotate(angle, center.X, center.Y);
