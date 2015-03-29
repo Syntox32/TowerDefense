@@ -24,7 +24,7 @@ namespace ProjectGamma
         private const int damagePerEnemy = 1;
 
         public int UnitBalance { get; private set; }
-        public int RoundNumber { get; private set; }
+        public int WaveNumber { get; private set; }
         public int Health { get; private set; }
 
         public bool ModeLevelEditor { get; set; }
@@ -35,9 +35,10 @@ namespace ProjectGamma
         public bool ModePauseUpdate { get; set; }
 
         public View Camera;
-        
+        public Wave CurrentWave;
+        public WaveState WaveState;
+
         private Game _game;
-        private Round _currentRound;
         private LevelOverlay _overlay;
         private TileMap _tileMap;
         private GridLayer<TowerEntity> _towerMap;
@@ -83,25 +84,18 @@ namespace ProjectGamma
             //game.MouseButtonPressed += (sender, e) => { Camera.Move(new Vector2f(-10f, -10f)); };
         }
 
-        public static Round GenereateNewRound(int roundNumber)
+        public void UpdateInfo()
         {
-            return null;
+            _overlay.UpdateInfo();
         }
 
-        public void DelegateTowerActions()
-        {
+        public void NextWave() { }
 
-        }
+        public void DelegateTowerActions() { }
 
-        public bool BuyTower()
-        {
-            return false;
-        }
+        public bool BuyTower() { return false; }
 
-        public bool SellTower()
-        {
-            return false;
-        }
+        public bool SellTower() { return false; }
 
         public void SetTile(Vector2f pos, bool road)
         {
@@ -115,10 +109,7 @@ namespace ProjectGamma
             _tileMap[(int)coords.X, (int)coords.Y].Rotate(90.0f);
         }
 
-        private void ConfigureEntities()
-        {
-
-        }
+        private void ConfigureEntities() { }
 
         private void LoadAssets()
         {
@@ -130,22 +121,18 @@ namespace ProjectGamma
             _texTileTurn = Utils.GetTexture(_spriteSheet, 16, 16, 8, 8);
         }
 
-        public void LoadLevel()
-        {
+        public void LoadLevel() { }
 
-        }
-
-        public bool SaveCurrentState()
-        {
-            return false;
-        }
+        public bool SaveCurrentState() { return false; }
 
         public override void Update(float delta)
         {
             if (!ModePauseUpdate)
             {
-                _towerMap.Update(delta);
                 base.Update(delta);
+                _towerMap.Update(delta);
+
+
             }
             
             _overlay.Update(delta);
