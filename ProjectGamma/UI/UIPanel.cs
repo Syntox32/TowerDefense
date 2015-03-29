@@ -11,6 +11,8 @@ namespace ProjectGamma.UI
 {
     public class UIPanel : UIObject
     {
+        public static float OutlineThickness = 5f;
+        
         public readonly Vector2f Size;
 
         private Game _game;
@@ -43,7 +45,7 @@ namespace ProjectGamma.UI
             _sprite = new RectangleShape(size);
             _sprite.Position = pos;
             _sprite.FillColor = _colorIn;
-            _sprite.OutlineThickness = 5f;
+            _sprite.OutlineThickness = OutlineThickness;
             _sprite.OutlineColor = _colorOut;
         }
 
