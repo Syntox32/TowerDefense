@@ -17,8 +17,6 @@ namespace ProjectGamma.UI
         private Game _instance;
         private RectangleShape _selection;
 
-        private InfoOverlay _infoOverlay;
-
         private int _frameCount = 0;
         private float _dt = 0f;
         private float _fps = 0f;
@@ -41,8 +39,6 @@ namespace ProjectGamma.UI
             _entScalar = scalar;
             _tileSize = tileSize;
             _instance = Game.Instance;
-
-            _infoOverlay = new InfoOverlay(_instance, level);
 
             _label = new UILabel("Bloodthruster er best as", 16, new Vector2f(160f, 173f));
             _debug = new UILabel("N/A", 24, new Vector2f(5f, 0f), true, false);
@@ -134,11 +130,6 @@ namespace ProjectGamma.UI
             _selection.Color = color; */
         }
 
-        public void UpdateInfo()
-        {
-            _infoOverlay.Invalidate = true;
-        }
-
         private void UpdateDebugInfo(float delta)
         {
             _frameCount++;
@@ -170,13 +161,12 @@ namespace ProjectGamma.UI
         public override void Update(float delta)
         {
             //base.Update(delta);
-
             UpdateDebugInfo(delta);
 
             _testPanel.Update(delta);
             _label.Update(delta);
             _buttonTest.Update(delta);
-            _infoOverlay.Update(delta);
+            
         }
         
         public override void Render(RenderTarget target, RenderStates states)
@@ -197,8 +187,6 @@ namespace ProjectGamma.UI
             // everything else
 
             // base.Render(target, states);
-            _infoOverlay.Render(target, states);
-
             _testPanel.Draw(target, states);
             _label.Draw(target, states);
             _buttonTest.Draw(target, states);

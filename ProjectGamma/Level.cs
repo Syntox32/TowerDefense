@@ -34,15 +34,17 @@ namespace ProjectGamma
         public bool ModePauseRendering { get; set; }
         public bool ModePauseUpdate { get; set; }
 
+        public WaveState CurrentState { get; private set; }
+        public Wave CurrentWave { get; private set; }
+
         public View Camera;
-        public Wave CurrentWave;
-        public WaveState WaveState;
 
         private Game _game;
-        private LevelOverlay _overlay;
+        private LevelOverlay _overlayLevel;
+        private InfoOverlay _overlayInfo;
         private TileMap _tileMap;
         private GridLayer<TowerEntity> _towerMap;
-        private EntityPool _enemyPool; // TODO: Look this over, might no work with the new refactor of Entity
+        private EntityPool<EnemyEntity> _enemyPool; // TODO: Look this over, might no work with the new refactor of Entity
         private AStar<Tile> _pathfinding;
         private ScanlineShader _scanlines;
         private RenderTexture _renderTex;
@@ -63,18 +65,21 @@ namespace ProjectGamma
             LoadAssets();
             ConfigureEntities();
 
-            UnitBalance = 1000; // default
+            UnitBalance = 1200; // default
             Health = 100;
-
-            _enemyPool = new EntityPool(1000);
+            WaveNumber = 0;
+            CurrentState = WaveState.None;
+            
+            //_enemyPool = new EntityPool(1000);
             _scanlines = new ScanlineShader(new Vector2u((uint)Game.Size.X, (uint)Game.Size.Y));
             _renderTex = new RenderTexture((uint)Game.Size.X, (uint)Game.Size.Y, true);
 
             var tileSize = _texTileBasic.Size.X * SpriteScalar;
 
             _game = game;
-            _overlay = new LevelOverlay(this, SpriteScalar, tileSize);
-            _overlay.SetSelectionState(_texTileRoad, 128);
+            _overlayInfo = new InfoOverlay(_game, this);
+            _overlayLevel = new LevelOverlay(this, SpriteScalar, tileSize);
+            _overlayLevel.SetSelectionState(_texTileRoad, 128);
             Camera = new View(new Vector2f(Game.Size.X / 2, Game.Size.Y / 2), Game.Size);
 
             _tileMap = new TileMap(this, _texTileBasic, tilesX, tilesY, tileSize);
@@ -82,14 +87,21 @@ namespace ProjectGamma
             _pathfinding = new AStar<Tile>(HeuristicMethod.Manhatten);
             //Path = _pathfinding.CalculatePath(_tileMap.StartTile, _tileMap.EndTile, _tileMap).ToList<Tile>();
             //game.MouseButtonPressed += (sender, e) => { Camera.Move(new Vector2f(-10f, -10f)); };
+
+            _enemyPool = new EntityPool<EnemyEntity>(1000);
+
+            UpdateInfo();
         }
 
         public void UpdateInfo()
         {
-            _overlay.UpdateInfo();
+            _overlayInfo.Invalidate = true;
         }
 
-        public void NextWave() { }
+        public void NextWave() 
+        {
+             
+        }
 
         public void DelegateTowerActions() { }
 
@@ -100,13 +112,13 @@ namespace ProjectGamma
         public void SetTile(Vector2f pos, bool road)
         {
             var coords = _tileMap.GetGridCoords(pos);
-            _tileMap[(int)coords.X, (int)coords.Y].SetState(_texTileRoad, true);
+            _tileMap[(int)coords.X, (int)coords.Y].SetState(true, _texTileRoad, false);
         }
 
         public void RotateTile(Vector2f pos)
         {
             var coords = _tileMap.GetGridCoords(pos);
-            _tileMap[(int)coords.X, (int)coords.Y].Rotate(90.0f);
+            _tileMap[(int)coords.X, (int)coords.Y].CreateRotation(90.0f);
         }
 
         private void ConfigureEntities() { }
@@ -134,8 +146,9 @@ namespace ProjectGamma
 
 
             }
-            
-            _overlay.Update(delta);
+
+            _overlayInfo.Update(delta);
+            _overlayLevel.Update(delta);
         }
         
         public override void Render(RenderTarget target, RenderStates states)
@@ -153,7 +166,8 @@ namespace ProjectGamma
             target.SetView(target.DefaultView);
 
             // Draw the interface without the level camera
-            _overlay.Render(target, states);
+            _overlayInfo.Render(target, states);
+            _overlayLevel.Render(target, states);
         }
     }
 }
