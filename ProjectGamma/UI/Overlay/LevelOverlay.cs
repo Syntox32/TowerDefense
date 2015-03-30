@@ -83,16 +83,25 @@ namespace ProjectGamma.UI
                 _level.BuyTower(GetMouseCoordsToLevel(), Entities.TowerEntityType.Basic);
                 Console.WriteLine("BOUGHT FIRST TOWER OMG");
             }
+
+            var tower = _level.TowerMap[(int)CurNormIndex.X, (int)CurNormIndex.Y];
+               
+            if (tower != null && Keyboard.IsKeyPressed(Keyboard.Key.LShift))
+            {
+                tower.SetRotation(tower.Rotation + 45f);
+                Console.WriteLine("Rotated a tower zomg");
+            }
         }
 
         private void MouseWheelMoved(object sender, MouseWheelEventArgs e)
         {
-            if (!Keyboard.IsKeyPressed(Keyboard.Key.LControl)) return;
-
-            if (e.Delta < 0)
-                _level.Camera.Zoom(1.1f);
-            else
-                _level.Camera.Zoom(0.9f);
+            if (Keyboard.IsKeyPressed(Keyboard.Key.LControl))
+            {
+                if (e.Delta < 0)
+                    _level.Camera.Zoom(1.1f);
+                else
+                    _level.Camera.Zoom(0.9f);
+            }
         }
 
         private void KeyPressed(object sender, KeyEventArgs e)
