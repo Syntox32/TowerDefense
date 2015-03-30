@@ -55,11 +55,6 @@ namespace ProjectGamma.Entities
         public float Rotation
         {
             get { return _rotation; }
-            set
-            {
-                _rotation = value;
-                Transform.Rotate(value, Center);
-            }
         }
 
         public TowerEntity(int id, Level level, TowerEntityType type, Texture tex)
@@ -92,9 +87,20 @@ namespace ProjectGamma.Entities
         protected void InvalidateCenter()
         {
             _center = new Vector2f(
-                    Position.X + (Sprite.Texture.Size.X / 2),
-                    Position.Y + (Sprite.Texture.Size.Y / 2)
+                    Position.X + ((Sprite.Texture.Size.X * Sprite.Scale.X) / 2),
+                    Position.Y + ((Sprite.Texture.Size.Y * Sprite.Scale.Y) / 2)
             );
+        }
+
+        public void SetRotation(float angle)
+        {
+            // TODO: there is some wierd 'snap-angle' bug, but it's not intrusssiveee
+
+            _rotation += angle;
+
+            _rotation = Utils.WrapAngle360(_rotation);
+
+            Transform.Rotate(_rotation, Center);
         }
 
         public override void Draw(RenderTarget target, RenderStates states)
