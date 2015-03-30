@@ -14,7 +14,7 @@ namespace ProjectGamma.UI
     public class LevelOverlay : Scene
     {
         private Level _level;
-        private Game _instance;
+        private Game _game;
         private RectangleShape _selection;
 
         private int _frameCount = 0;
@@ -30,7 +30,8 @@ namespace ProjectGamma.UI
         private UIPanel _testPanel;
         private UILabel _labelTitle;
 
-        public string DebugText;
+        public string DebugText { get; set; }
+        public Vector2f CurNormIndex { get; private set; }
 
         public LevelOverlay(Level level, float scalar, float tileSize)
             : base(true)
@@ -38,69 +39,96 @@ namespace ProjectGamma.UI
             _level = level;
             _entScalar = scalar;
             _tileSize = tileSize;
-            _instance = Game.Instance;
+            _game = Game.Instance;
 
             _label = new UILabel("Bloodthruster er best as", 16, new Vector2f(160f, 173f));
             _debug = new UILabel("N/A", 24, new Vector2f(5f, 0f), true, false);
-            _buttonTest = new UIButton(_instance, "OMG YAYY", new Vector2f(200f, 210f), new Vector2f(200f,35f), 24);
-            _testPanel = new UIPanel(_instance, new Vector2f(150f,150f), new Vector2f(400f,200f));
+            _buttonTest = new UIButton(_game, "OMG YAYY", new Vector2f(200f, 210f), new Vector2f(200f,35f), 24);
+            _testPanel = new UIPanel(_game, new Vector2f(150f,150f), new Vector2f(400f,200f));
             _labelTitle = new UILabel("UPGRADES MENU", 24, new Vector2f(160f, 150f), true);
 
-            _buttonTest.OnUIButtonClick += buttonTest_OnUIButtonClick;
-            _instance.KeyPressed += gameInstance_KeyPressed;
-            _instance.MouseWheelMoved += instance_MouseWheelMoved;
-            _instance.MouseButtonReleased += instance_MouseButtonReleased;
+            _buttonTest.OnUIButtonClick += OnUIButtonClick;
+
+            _game.KeyPressed += KeyPressed;
+            _game.MouseWheelMoved += MouseWheelMoved;
+            _game.MouseButtonReleased += MouseButtonReleased;
+            _game.MouseMoved += MouseMoved;
         }
 
         //
         // Events or something
         //
 
-        private void instance_MouseButtonReleased(object sender, MouseButtonEventArgs e)
+        private void MouseMoved(object sender, MouseMoveEventArgs e)
+        {
+            CurNormIndex = GetMouseNormGridCoordsToLevel();
+        }
+
+        private void MouseButtonReleased(object sender, MouseButtonEventArgs e)
         {
             if (UIObject.HasFocus) return; // if any gui element has the focus, skip the next code
 
-            if (_level.ModePlaceTower && e.Button == Mouse.Button.Left)
+            if (_level.ModeLevelEditor && e.Button == Mouse.Button.Left)
             {
-                _level.SetTile(GetCoordsToLevel(), true);
+                _level.SetTile(GetMouseCoordsToLevel(), true);
                 Console.WriteLine("something became a road");
             }
-            else if (_level.ModePlaceTower && e.Button == Mouse.Button.Right)
+            else if (_level.ModeLevelEditor && e.Button == Mouse.Button.Right)
             {
-                _level.RotateTile(GetCoordsToLevel());
+                _level.RotateTile(GetMouseCoordsToLevel());
+            }
+
+            if (_level.ModePlaceTower && e.Button == Mouse.Button.Left)
+            {
+                _level.BuyTower(GetMouseCoordsToLevel(), Entities.TowerEntityType.Basic);
+                Console.WriteLine("BOUGHT FIRST TOWER OMG");
             }
         }
 
-        private void instance_MouseWheelMoved(object sender, MouseWheelEventArgs e)
+        private void MouseWheelMoved(object sender, MouseWheelEventArgs e)
         {
+            if (!Keyboard.IsKeyPressed(Keyboard.Key.LControl)) return;
+
             if (e.Delta < 0)
                 _level.Camera.Zoom(1.1f);
             else
                 _level.Camera.Zoom(0.9f);
         }
 
-        private void gameInstance_KeyPressed(object sender, KeyEventArgs e)
+        private void KeyPressed(object sender, KeyEventArgs e)
         {
             switch((Keyboard.Key)e.Code)
             {
-                // Build mode
-                case Keyboard.Key.B:
-                    if (!_level.ModePlaceTower)
-                    {
-                        Console.WriteLine("Build mode enabled!");
-                        _level.ModePlaceTower = true;
-                        DebugText = "] BUILD MODE ENABLED";
-                    }
-                    else
-                    {
-                        Console.WriteLine("Build mode disabled!");
-                        _level.ModePlaceTower = false;
-                    }
-                    break;
+            // Build mode
+            case Keyboard.Key.B:
+                if (!_level.ModePlaceTower)
+                {
+                    Console.WriteLine("Build mode enabled!");
+                    _level.ModeLevelEditor = true;
+                    DebugText = "] BUILD MODE ENABLED";
+                }
+                else
+                {
+                    Console.WriteLine("Build mode disabled!");
+                    _level.ModeLevelEditor = false;
+                }
+                break;
+            // Buy mode
+            case Keyboard.Key.W:
+                if (!_level.ModePlaceTower)
+                {
+                    Console.WriteLine("Tower placement mode enabled");
+                    _level.ModePlaceTower = true;
+                }
+                else
+                {
+                    _level.ModePlaceTower = false;
+                }
+                break;
             }
         }
 
-        private void buttonTest_OnUIButtonClick(object sender, UIButtonClickEventArgs e)
+        private void OnUIButtonClick(object sender, UIButtonClickEventArgs e)
         {
             Console.WriteLine("omg IT WORKS :DDD");
             _level.ModePauseUpdate = true;
@@ -141,26 +169,37 @@ namespace ProjectGamma.UI
                 _frameCount = 0;
                 _dt -= 1f / _updateRate;
 
-                _debug.SetText("[DEBUG] FPS: {0:0}\n{1}", _fps, DebugText);
             }
+
+            string ds = "[DEBUG]";
+            ds += String.Format("\nFPS: {0:0}", _fps);
+            ds += String.Format("\n[{0}, {1}]", CurNormIndex.X, CurNormIndex.Y);
+
+            _debug.SetText(ds);
         }
 
-        public Vector2f GetCoordsToLevel()
+        public Vector2f GetMouseCoordsToLevel()
         {
             var t = Game.Instance as RenderTarget;
-            return t.MapPixelToCoords(Mouse.GetPosition(_instance), _level.Camera);
+            return t.MapPixelToCoords(Mouse.GetPosition(_game), _level.Camera);
         }
 
-        public Vector2f GetGridCoordsToLevel()
+        public Vector2f GetMouseGridCoordsToLevel()
         {
             var t = Game.Instance as RenderTarget;
-            var mousePos = t.MapPixelToCoords(Mouse.GetPosition(_instance), _level.Camera);
+            var mousePos = t.MapPixelToCoords(Mouse.GetPosition(_game), _level.Camera);
             return new Vector2f(Mathf.Floor(mousePos.X / _tileSize) * _tileSize, Mathf.Floor(mousePos.Y / _tileSize) * _tileSize);
+        }
+
+        public Vector2f GetMouseNormGridCoordsToLevel()
+        {
+            var t = Game.Instance as RenderTarget;
+            var mousePos = t.MapPixelToCoords(Mouse.GetPosition(_game), _level.Camera);
+            return _level.TileMap.GetGridCoords(mousePos);
         }
 
         public override void Update(float delta)
         {
-            //base.Update(delta);
             UpdateDebugInfo(delta);
 
             _testPanel.Update(delta);
@@ -171,13 +210,13 @@ namespace ProjectGamma.UI
         
         public override void Render(RenderTarget target, RenderStates states)
         {
-
+            target.SetView(_level.Camera); 
+            
             // anything that is going to be rendered to the tilemap goes here
-            target.SetView(_level.Camera);
 
             if (_level.ModePlaceTower)
             {
-                var gridPos = GetGridCoordsToLevel();
+                var gridPos = GetMouseGridCoordsToLevel();
                 _selection.Position = gridPos;
                 _selection.Draw(target, states);
             }
@@ -186,7 +225,6 @@ namespace ProjectGamma.UI
 
             // everything else
 
-            // base.Render(target, states);
             _testPanel.Draw(target, states);
             _label.Draw(target, states);
             _buttonTest.Draw(target, states);
