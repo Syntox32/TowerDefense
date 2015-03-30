@@ -60,6 +60,16 @@ namespace ProjectGamma
         private Texture _texTileRoad;
         private Texture _texTileTurn;
         
+        public TileMap TileMap 
+        { 
+            get { return _tileMap; }
+        }
+
+        public GridLayer<TowerEntity> TowerMap
+        {
+            get { return _towerMap; }
+        }
+
         public Level(Game game)
         {
             LoadAssets();
@@ -105,7 +115,42 @@ namespace ProjectGamma
 
         public void DelegateTowerActions() { }
 
-        public bool BuyTower() { return false; }
+        public bool BuyTower(Vector2f pos, TowerEntityType type)
+        {
+            switch(type)
+            {
+                // TODO: Check if a tower is null before subtrackting units
+            case TowerEntityType.Basic:
+                var stats = EntityStats.TowerEntityStatTable[type];
+
+                if (UnitBalance >= stats.UnitCost)
+                {
+                    UnitBalance -= stats.UnitCost;
+
+                    var normIndex = _tileMap.GetGridCoords(pos);
+                    int index = _towerMap.GetIndex((int)normIndex.X, (int)normIndex.Y);
+
+                    var mPos = _overlayLevel.GetMouseGridCoordsToLevel();
+                    var tileSize = 8 * SpriteScalar;
+                    var texSize = _towerBasic.Size * (uint)SpriteScalar;
+
+                    var newPos = new Vector2f(
+                        mPos.X + ((tileSize / 2) - (texSize.X / 2)),
+                        mPos.Y + ((tileSize / 2) - (texSize.Y / 2)));
+
+                    if (_towerMap[index] == null)
+                    {
+                        _towerMap[index] = new BasicTower(index, newPos, this, _towerBasic);
+
+                        UpdateInfo();
+                        return true;
+                    }
+                }
+                break;
+            }
+
+            return false;
+        }
 
         public bool SellTower() { return false; }
 
@@ -131,6 +176,7 @@ namespace ProjectGamma
             _texTileBasic = Utils.GetTexture(_spriteSheet, 16, 0, 8, 8);
             _texTileRoad = Utils.GetTexture(_spriteSheet, 16, 8, 8, 8);
             _texTileTurn = Utils.GetTexture(_spriteSheet, 16, 16, 8, 8);
+            _towerBasic = Utils.GetTexture(_spriteSheet, 0, 16, 5, 7);
         }
 
         public void LoadLevel() { }
