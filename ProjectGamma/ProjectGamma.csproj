@@ -98,7 +98,7 @@
     <Compile Include="Entity\Entity.cs" />
     <Compile Include="Entity\EntityPool.cs" />
     <Compile Include="Entity\EntityStats.cs" />
-    <Compile Include="Entity\TowerEntity.cs" />
+    <Compile Include="Entity\Tower.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="IDrawable.cs" />
     <Compile Include="Scanlineshader.cs" />

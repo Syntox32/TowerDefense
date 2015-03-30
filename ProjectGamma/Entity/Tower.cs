@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using SFML.Graphics;
 using SFML.Window;
 
+using ProjectGamma.Utilities;
+
 namespace ProjectGamma.Entities
 {
     public enum TowerEntityType : int
@@ -19,28 +21,101 @@ namespace ProjectGamma.Entities
 
     public class TowerEntity : Entity
     {
-        public static readonly float SellPercentage = 0.8f;
+        public const float SellPercentage = 0.8f;
 
-        private Level _level;
-        private Texture _texture;
-        private TowerEntityType _type;
+        public int CurrentTargetID;
+        public bool Occupied;
+       
+        private float _rotation;
+        private Vector2f _center;
+
+        protected TowerEntityType Type;
+        protected Transform Transform;
+        protected Sprite Sprite;
+        protected Level Level;
+
+        private Vector2f Center
+        {
+            get { return _center; }
+        }
+
+        new public Vector2f Position
+        {
+            get { return base.Position; }
+            set
+            {
+                base.Position = value;
+                Sprite.Position = Position;
+
+                InvalidateCenter();
+            }
+        }
+
+
+        public float Rotation
+        {
+            get { return _rotation; }
+            set
+            {
+                _rotation = value;
+                Transform.Rotate(value, Center);
+            }
+        }
 
         public TowerEntity(int id, Level level, TowerEntityType type, Texture tex)
-            : base(id) // shold assign an id when spawning
+            : base(id)
         {
-            _level = level;
-            _texture = tex;
-            _type = type;
+            Level = level;
+            Type = type;
+
+            Occupied = false;
+            CurrentTargetID = -1;
+
+            Sprite = new Sprite(tex);
+            Sprite.Scale = Level.SpriteScalar.ToVector();
+
+            Transform = Transform.Identity;
+            
+            InvalidateCenter();
+        }
+
+        public bool Seek()
+        {
+            return false;
+        }
+
+        public bool Attack()
+        {
+            return false;
+        }
+
+        protected void InvalidateCenter()
+        {
+            _center = new Vector2f(
+                    Position.X + (Sprite.Texture.Size.X / 2),
+                    Position.Y + (Sprite.Texture.Size.Y / 2)
+            );
         }
 
         public override void Draw(RenderTarget target, RenderStates states)
         {
-            base.Draw(target, states);
+            states.Transform = Transform;
+            Sprite.Draw(target, states);            
         }
 
-        public override void Update(double delta)
+        public override string ToString()
         {
-            base.Update(delta);
+            return String.Format("[Tile] Type({0}) ID({1}) ({2})", 
+                (int)Type, ID, Position.ToString());
+        }
+    }
+
+    public class BasicTower : TowerEntity
+    {
+        public BasicTower(int id, Vector2f pos, Level level, Texture tex)
+            : base(id, level, TowerEntityType.Basic, tex)
+        {
+            Position = pos;
         }
     }
 }
