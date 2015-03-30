@@ -78,13 +78,21 @@ namespace ProjectGamma
             throw new ArgumentException("No entity with id in current pool");
         }
 
+        public void Clear()
+        {
+            for(int i = 0; i < Entities.Length; i++)
+            {
+                Entities[i] = null;
+            }
+        }
+
         public void Update(double dt)
         {
             for (int i = 0; i < Entities.Length; i++)
             {
                 var ent = Entities[i];
 
-                if (ent != null && ent.IsAlive) ent.Update(dt);
+                if (ent != null) ent.Update(dt);
             }
         }
 
@@ -94,7 +102,7 @@ namespace ProjectGamma
             {
                 var ent = Entities[i];
 
-                if (ent != null && ent.IsAlive) ent.Draw(target, states);
+                if (ent != null) ent.Draw(target, states);
             }
         }
 

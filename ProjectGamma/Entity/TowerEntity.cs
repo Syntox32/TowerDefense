@@ -25,8 +25,8 @@ namespace ProjectGamma.Entities
         private Texture _texture;
         private TowerEntityType _type;
 
-        public TowerEntity(Level level, TowerEntityType type, Texture tex)
-            : base(-1) // shold assign an id when spawning
+        public TowerEntity(int id, Level level, TowerEntityType type, Texture tex)
+            : base(id) // shold assign an id when spawning
         {
             _level = level;
             _texture = tex;

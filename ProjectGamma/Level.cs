@@ -44,7 +44,7 @@ namespace ProjectGamma
         private InfoOverlay _overlayInfo;
         private TileMap _tileMap;
         private GridLayer<TowerEntity> _towerMap;
-        private EntityPool<EnemyEntity> _enemyPool; // TODO: Look this over, might no work with the new refactor of Entity
+        private EntityPool<EnemyEntity> _enemyPool;
         private AStar<Tile> _pathfinding;
         private ScanlineShader _scanlines;
         private RenderTexture _renderTex;
