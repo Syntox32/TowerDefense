@@ -13,7 +13,7 @@ namespace ProjectGamma.Entities
 {
     public class EnemyEntity : Entity
     {
-        public readonly Vector2f InitPos;
+        public readonly Vector2f ResetOrigin;
         public readonly float SpriteScalar;
 
         public float Speed;
@@ -34,16 +34,16 @@ namespace ProjectGamma.Entities
             }
         }
 
-        public EnemyEntity(int id, Vector2f initPos, Texture tex, float scalar = 1.0f)
+        public EnemyEntity(int id, Vector2f pos, Texture tex, float scalar = 1.0f)
             : base(id)
         {
             Speed = 100f;
 
             SpriteScalar = scalar;
-            InitPos = initPos; // position to be reset to
+            ResetOrigin = pos; // position to be reset to
 
             _sprite = new Sprite(tex);
-            _sprite.Position = initPos;
+            _sprite.Position = pos;
             _sprite.Scale = scalar.ToVector();
         }
 
@@ -53,7 +53,7 @@ namespace ProjectGamma.Entities
             Direction = new Vector2f();
 
             IsAlive = true;
-            Position = InitPos;
+            Position = ResetOrigin;
         }
 
         public override void Update(double delta)
