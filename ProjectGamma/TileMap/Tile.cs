@@ -27,6 +27,8 @@ namespace ProjectGamma.Tiling
 
         public float F { get { return H + G; } }
 
+        public int ID { get { return base.ID; } }
+
         #endregion
 
         private float _scale;

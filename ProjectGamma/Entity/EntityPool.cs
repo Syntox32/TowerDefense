@@ -10,71 +10,72 @@ using ProjectGamma.Entities;
 
 namespace ProjectGamma
 {
-    public class EntityPool : IEnumerable
+    public class EntityPool<T> : IEnumerable
+        where T : Entity
     {
-        public readonly Entity[] Entities;
+        public readonly T[] Entities;
 
         public int MaxEntities { get; private set; }
-        public int Count  { get { return Entities.Length; } }
-        public int Alive { get { return Entities.Count(x => x.IsAlive); } }
 
-        public Entity this[int index]
+        public int Count 
         {
             get
             {
-                if (index >= Entities.Length || index < 0) throw new ArgumentOutOfRangeException();
+                int count = 0;
 
+                for (int i = 0; i < Entities.Length; i++)
+                {
+                    if (Entities[i] != null) count++;
+                }
+
+                return count;
+            }
+        }
+
+        public int Alive 
+        { 
+            get { return Entities.Count(x => x.IsAlive); }
+        }
+
+        public T this[int index]
+        {
+            get
+            {
+                if (index >= Entities.Length || index < 0)  throw new ArgumentOutOfRangeException();
+                    
                 return Entities[index];
             }
-            set 
-            {
-                // we want all entities initalized
-                if (value == null) throw new ArgumentNullException();
+        }
 
-                Entities[index] = value;
+        public EntityPool(int maxEntities)
+        {
+            MaxEntities = maxEntities;
+            Entities = new T[maxEntities];
+
+            for (int i = 0; i < maxEntities; i++)
+            {
+                Entities[i] = null; // lol
             }
         }
 
-        public EntityPool(int initalEntities)
+        public void PushEntity(T ent)
         {
-            MaxEntities = initalEntities;
-            Entities = new Entity[initalEntities];
-
-            for (int i = 0; i < initalEntities; i++) 
-                Entities[i] = new Entity(i) { IsAlive = false }; // initalize all entities to be dead
+            if (Count + 1 >= MaxEntities) throw new ArgumentException("Reached entity limit");
+            
+            for(int i = 0; i < Entities.Length; i++)
+            {
+                if (Entities[i] == null) Entities[i] = (T)ent;
+            }
         }
 
-        public void PushEntity(Entity ent)
+        public void RemoveEntity(T ent)
         {
             for(int i = 0; i < Entities.Length; i++)
             {
-                // just for debugging
-                if (Entities[i] == null)
-                    Console.WriteLine("[WARN] Entity({0}) should not be null", i);
-
-                // find the first dead entity to replace
-                if (!Entities[i].IsAlive && Entities[i] != null)
-                {
-                    ent.ID = i;
-                    ent.IsAlive = true;
-                    ent.InUse = true;
-
-                    Entities[i] = ent;
-
-                    return;
-                }
+                if (Entities[i].ID == ent.ID) Entities[i] = null;
             }
 
-            throw new ArgumentException("Reached entity limit");
-        }
-
-        public void RemoveEntity(Entity ent)
-        {
-            // as long as you don't change the entity id while it is in the pool
-            // you should be fine
-            Entity e = Entities[ent.ID];
-
-            if (e != null) Entities[ent.ID].IsAlive = false;
+            throw new ArgumentException("No entity with id in current pool");
         }
 
         public void Update(double dt)
@@ -93,19 +94,24 @@ namespace ProjectGamma
             {
                 var ent = Entities[i];
 
-                if (ent != null && ent.IsAlive)
-                    ent.Draw(target, states);
+                if (ent != null && ent.IsAlive) ent.Draw(target, states);
             }
         }
 
-        public IEnumerator<Entity> GetEnumerator()
+        public IEnumerator<T> GetEnumerator()
         {
-            for(int i = 0; i < Entities.Length; i++) yield return Entities[i];
+            for (int i = 0; i < Entities.Length; i++)
+            {
+                if (Entities[i] != null) yield return Entities[i];
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            for (int i = 0; i < Entities.Length; i++) yield return Entities[i];
+            for (int i = 0; i < Entities.Length; i++)
+            {
+                if (Entities[i] != null) yield return Entities[i];
+            }
         }
     }
 }

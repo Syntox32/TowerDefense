@@ -11,26 +11,12 @@ namespace ProjectGamma.Entities
 {
     public class Entity
     {
-        private int _id;
+        public readonly int ID;
 
         private float _x;
         private float _y;
 
-        public int ID 
-        { 
-            get { return _id; }
-            set
-            {
-                if (InUse) // never change the ID while in use
-                    throw new Exception("Can't change ID of entity while in use");
-            
-                _id = value;
-                InUse = true; // set to in use when the id is set
-            }
-        }
-
         public bool IsAlive { get; set; }
-        public bool InUse { get; set; }
 
         public float X 
         {
@@ -54,18 +40,10 @@ namespace ProjectGamma.Entities
             }
         }
 
-        public Entity()
-            : this(-1)
-        { }
-
         public Entity(int id)
         {
             IsAlive = true;
-
-            if (id < 0) // if initalized with a negative id, it should not be in use by default
-                _id = id;
-            else
-                ID = id;
+            ID = id;
         }
 
         public virtual void Update(double delta) { }
